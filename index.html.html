@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>DécoClient — Simulation commerciale</title>
+<style>
+:root{color-scheme:light dark}*{box-sizing:border-box}body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,sans-serif;background:#eee8df;color:#2c2926}.app{min-height:100vh;background:light-dark(#f7f3ed,#201d1a);display:flex;justify-content:center;padding:28px}.shell{width:min(980px,100%);display:grid;grid-template-columns:280px 1fr;gap:18px}.panel,.chat{background:light-dark(#fffdf9,#2a2724);border:1px solid light-dark(#ddd4c8,#443d36);border-radius:22px;box-shadow:0 12px 35px #00000012}.panel{padding:22px}.brand{font-size:24px;font-weight:800}.muted{color:light-dark(#756e66,#b9afa5);font-size:13px}.tag{display:inline-block;margin-top:14px;padding:7px 10px;border-radius:99px;background:#d8b28a;color:#3b2b20;font-weight:700;font-size:12px}.panel h3{margin:26px 0 10px;font-size:14px}.panel ul{padding-left:18px;margin:8px 0}.panel li{margin:10px 0;font-size:13px}.scenario{margin-top:20px;padding:13px;border-radius:14px;background:light-dark(#f4eee6,#332f2b);font-size:13px;line-height:1.5}.chat{display:flex;flex-direction:column;min-height:650px;overflow:hidden}.head{padding:20px 22px;border-bottom:1px solid light-dark(#e1d9d0,#443d36);display:flex;align-items:center;gap:13px}.avatar{width:45px;height:45px;border-radius:50%;display:grid;place-items:center;background:#c89b72;color:white;font-weight:800}.head strong{display:block}.status{font-size:12px;color:#6d8a65}.messages{flex:1;padding:22px;overflow:auto;display:flex;flex-direction:column;gap:12px}.bubble{max-width:78%;padding:12px 15px;border-radius:17px;line-height:1.45;font-size:14px;white-space:pre-wrap}.bot{align-self:flex-start;background:light-dark(#eee7df,#39332e);border-bottom-left-radius:5px}.user{align-self:flex-end;background:#c89b72;color:#fff;border-bottom-right-radius:5px}.composer{padding:15px;border-top:1px solid light-dark(#e1d9d0,#443d36);display:flex;gap:9px}.composer input{flex:1;border:1px solid light-dark(#d6ccc0,#50483f);background:transparent;border-radius:13px;padding:12px;color:inherit;outline:none}.composer button,.reset{border:0;border-radius:13px;padding:0 17px;background:#6f5744;color:#fff;font-weight:700;cursor:pointer}.reset{margin-top:18px;padding:10px 14px}.tip{padding:0 22px 12px;font-size:11px;color:#857d74}@media(max-width:760px){.shell{grid-template-columns:1fr}.panel{display:none}.chat{min-height:720px}}
+</style></head>
+<body><main class="app"><div class="shell">
+<aside class="panel"><div class="brand">DécoClient</div><div class="muted">Simulation de découverte client</div><span class="tag">CLIENT IA</span><h3>Mission étudiant</h3><ul><li>Accueillir le client</li><li>Questionner sans proposer trop vite</li><li>Identifier besoins, goûts, contraintes et budget</li><li>Reformuler avant de conseiller</li></ul><div class="scenario"><b>Contexte</b><br>Vous êtes conseiller dans une entreprise de décoration intérieure. Le client vient avec un projet réel mais ne donnera les informations qu'au fil d'une bonne découverte.</div><button class="reset" onclick="resetChat()">Nouvelle simulation</button></aside>
+<section class="chat"><header class="head"><div class="avatar">CM</div><div><strong>Camille Martin — client</strong><span class="status">● disponible</span></div></header><div id="messages" class="messages"></div><div class="tip">Le client révèle progressivement ses informations. Posez des questions ouvertes et rebondissez sur ses réponses.</div><form class="composer" onsubmit="send(event)"><input id="input" autocomplete="off" placeholder="Écrivez votre réponse au client…"><button>Envoyer</button></form></section></div></main>
+<script>
+const facts={nom:'Camille Martin',projet:'réaménager le séjour et l’entrée',lieu:'une maison récente',style:'chaleureux, contemporain, pas trop froid',couleurs:'beige, terracotta et bois',budget:'environ 3 000 €',delai:'dans les deux prochains mois',probleme:'la pièce paraît vide et manque de personnalité',usage:'recevoir des amis et regarder des films en famille',elements:'canapé, tapis, luminaires et quelques accessoires'};
+let step=0,history=[];
+const replies=[
+'Bonjour ! Je viens justement chercher des idées pour refaire un peu ma décoration. Je ne sais pas trop par où commencer.',
+'C’est surtout mon séjour et mon entrée. La maison est récente, mais je trouve l’ensemble assez impersonnel.',
+'J’aimerais quelque chose de chaleureux et contemporain. Je n’ai pas envie d’un intérieur trop froid ou trop minimaliste.',
+'J’aime bien les tons beige, avec une touche de terracotta et du bois. Après, je suis ouvert(e) aux idées.',
+'Nous recevons régulièrement des amis et nous regardons aussi des films en famille, donc il faut que ce soit joli mais pratique.',
+'Je pensais notamment changer le canapé, ajouter un tapis, revoir les luminaires et mettre quelques accessoires.',
+'Pour le budget, je pensais à environ 3 000 €. Je peux ajuster un peu si le projet est vraiment cohérent.',
+'Idéalement, j’aimerais avancer dans les deux prochains mois.',
+'Je crois que vous avez bien cerné ce que je recherche. Qu’est-ce que vous me conseilleriez ?'
+];
+function add(text,who){const d=document.createElement('div');d.className='bubble '+who;d.textContent=text;document.getElementById('messages').appendChild(d);d.scrollIntoView({behavior:'smooth'});}
+function start(){add('Bonjour ! Bienvenue. Je cherche un peu d’aide pour un projet de décoration.','bot');}
+function send(e){e.preventDefault();const i=document.getElementById('input');const t=i.value.trim();if(!t)return;add(t,'user');history.push(t);i.value='';setTimeout(()=>{let r;if(step<replies.length){r=replies[step];step++;}else r='Oui, c’est exactement ça. Je suis surtout intéressé(e) par une proposition qui respecte mes goûts, mon usage et mon budget.';add(r,'bot');},450);}
+function resetChat(){document.getElementById('messages').innerHTML='';step=0;history=[];start();}
+start();
+</script></body></html>
